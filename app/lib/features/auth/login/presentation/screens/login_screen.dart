@@ -7,6 +7,8 @@ import '../../../../../shared/widgets/custom_text_field.dart';
 import '../../../../../shared/widgets/glow_container.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 
+import '../../../signup/presentation/screens/signup_screen.dart';
+
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
@@ -95,11 +97,23 @@ class LoginScreen extends StatelessWidget {
                         "Don't have an account? ",
                         style: AppTextStyles.bodyMedium,
                       ),
-                      Text(
-                        "Sign Up",
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
+
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SignupScreen(),
+                            ),
+                          );
+                        },
+
+                        child: Text(
+                          "Sign Up",
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],

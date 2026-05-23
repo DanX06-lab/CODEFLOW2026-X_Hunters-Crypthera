@@ -11,6 +11,8 @@ import '../../../../shared/widgets/bottom_navbar.dart';
 import '../../../../shared/widgets/glow_container.dart';
 import '../../../../shared/widgets/stat_card.dart';
 
+import '../../../ai_assistant/presentation/screens/ai_assistant_screen.dart';
+
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
@@ -208,24 +210,33 @@ class DashboardScreen extends StatelessWidget {
           Positioned(
             right: 26,
             bottom: 100,
-            child: Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.4),
-                    blurRadius: 40,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                LucideIcons.bot,
-                color: AppColors.background,
-                size: 28,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AiAssistantScreen()),
+                );
+              },
+
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.4),
+                      blurRadius: 40,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  LucideIcons.bot,
+                  color: AppColors.background,
+                  size: 28,
+                ),
               ),
             ),
           ),

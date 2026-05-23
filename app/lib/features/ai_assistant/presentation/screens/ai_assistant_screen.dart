@@ -41,23 +41,31 @@ class AiAssistantScreen extends StatelessWidget {
                   // HEADER
                   Row(
                     children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.card,
-                          border: Border.all(color: AppColors.stroke),
-                        ),
-                        child: const Icon(
-                          LucideIcons.arrowLeft,
-                          color: AppColors.textPrimary,
-                          size: 20,
+                      // BACK BUTTON
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.card,
+                            border: Border.all(color: AppColors.stroke),
+                          ),
+                          child: const Icon(
+                            LucideIcons.arrowLeft,
+                            color: AppColors.textPrimary,
+                            size: 20,
+                          ),
                         ),
                       ),
 
                       const SizedBox(width: 16),
 
+                      // TITLES
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

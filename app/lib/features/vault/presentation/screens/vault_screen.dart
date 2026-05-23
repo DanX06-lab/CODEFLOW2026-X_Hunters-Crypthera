@@ -8,6 +8,8 @@ import '../../../../shared/widgets/beneficiary_tile.dart';
 import '../../../../shared/widgets/bottom_navbar.dart';
 import '../../../../shared/widgets/glow_container.dart';
 
+import '../../../ai_assistant/presentation/screens/ai_assistant_screen.dart';
+
 class VaultScreen extends StatelessWidget {
   const VaultScreen({super.key});
 

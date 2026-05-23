@@ -3,6 +3,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../../auth/login/presentation/screens/login_screen.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -18,9 +20,13 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 2), () {
-      // TODO:
-      // Navigate to Login Screen later
+    Timer(const Duration(seconds: 4), () {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
     });
   }
 
@@ -28,6 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+
       body: Stack(
         children: [
           // CYAN GLOW
@@ -52,15 +59,11 @@ class _SplashScreenState extends State<SplashScreen> {
                 children: [
                   // LOGO
                   ClipOval(
-                    child: Container(
+                    child: SizedBox(
                       width: 160,
                       height: 160,
-                      color: Colors.transparent,
                       child: Image.asset(
                         'assets/images/crypthera.png',
-
-                        // CHANGE THIS NAME
-                        // if your logo filename is different
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -68,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
                   const SizedBox(height: 36),
 
-                  // APP NAME
+                  // TITLE
                   Text("Crypthera", style: AppTextStyles.heading1),
 
                   const SizedBox(height: 12),
@@ -81,7 +84,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
                   const SizedBox(height: 90),
 
-                  // LOADING DOTS
+                  // DOTS
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
