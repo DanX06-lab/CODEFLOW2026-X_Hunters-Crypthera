@@ -1,130 +1,151 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../../../../core/services/auth_service.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_text_styles.dart';
 
 import '../../../../../shared/widgets/custom_text_field.dart';
-import '../../../../../shared/widgets/glow_container.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 
+import '../../../../dashboard/presentation/screens/dashboard_screen.dart';
 import '../../../signup/presentation/screens/signup_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController emailController = TextEditingController();
+
+  final TextEditingController passwordController = TextEditingController();
+
+  final AuthService _authService = AuthService();
+
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          // GLOW EFFECTS
-          Positioned(
-            top: 40,
-            right: -40,
-            child: GlowContainer(size: 220, color: AppColors.primary),
-          ),
 
-          Positioned(
-            bottom: 80,
-            left: -60,
-            child: GlowContainer(size: 220, color: AppColors.purple),
-          ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 26),
 
-          // CONTENT
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 26),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 70),
+
+              // TITLE
+              Text("Welcome Back", style: AppTextStyles.heading1),
+
+              const SizedBox(height: 10),
+
+              Text(
+                "Securely access your digital vault",
+                style: AppTextStyles.bodyMedium,
+              ),
+
+              const SizedBox(height: 50),
+
+              // EMAIL FIELD
+              CustomTextField(
+                controller: emailController,
+                hintText: "Enter Email",
+                keyboardType: TextInputType.emailAddress,
+              ),
+
+              const SizedBox(height: 22),
+
+              // PASSWORD FIELD
+              CustomTextField(
+                controller: passwordController,
+                hintText: "Enter Password",
+                obscureText: true,
+              ),
+
+              const SizedBox(height: 36),
+
+              // LOGIN BUTTON
+              PrimaryButton(
+                text: isLoading ? "Loading..." : "Continue Securely",
+
+                onTap: () async {
+                  setState(() {
+                    isLoading = true;
+                  });
+
+                  try {
+                    await _authService.login(
+                      email: emailController.text.trim(),
+
+                      password: passwordController.text.trim(),
+                    );
+
+                    if (mounted) {
+                      Navigator.pushReplacement(
+                        context,
+
+                        MaterialPageRoute(
+                          builder: (_) => const DashboardScreen(),
+                        ),
+                      );
+                    }
+                  } on FirebaseAuthException catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(e.message ?? "Login Failed")),
+                    );
+                  } finally {
+                    setState(() {
+                      isLoading = false;
+                    });
+                  }
+                },
+              ),
+
+              const SizedBox(height: 28),
+
+              // SIGNUP NAVIGATION
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+
                 children: [
-                  const SizedBox(height: 70),
-
-                  // TITLE
-                  Text("Welcome Back", style: AppTextStyles.heading2),
-
-                  const SizedBox(height: 10),
-
                   Text(
-                    "Access your secure digital vault",
+                    "Don't have an account? ",
                     style: AppTextStyles.bodyMedium,
                   ),
 
-                  const SizedBox(height: 60),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
 
-                  // EMAIL
-                  const CustomTextField(hintText: "Enter email"),
+                        MaterialPageRoute(builder: (_) => const SignupScreen()),
+                      );
+                    },
 
-                  const SizedBox(height: 20),
+                    child: Text(
+                      "Sign Up",
 
-                  // PASSWORD
-                  const CustomTextField(
-                    hintText: "Enter password",
-                    obscureText: true,
-                  ),
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.primary,
 
-                  const SizedBox(height: 40),
-
-                  // LOGIN BUTTON
-                  PrimaryButton(text: "Continue Securely", onTap: () {}),
-
-                  const SizedBox(height: 20),
-
-                  // CONNECT WALLET BUTTON
-                  Container(
-                    width: double.infinity,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: AppColors.card,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.stroke),
-                    ),
-                    child: Center(
-                      child: Text(
-                        "Connect Wallet",
-                        style: AppTextStyles.titleMedium,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-
-                  const Spacer(),
-
-                  // SIGNUP
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Don't have an account? ",
-                        style: AppTextStyles.bodyMedium,
-                      ),
-
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const SignupScreen(),
-                            ),
-                          );
-                        },
-
-                        child: Text(
-                          "Sign Up",
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 40),
                 ],
               ),
-            ),
+
+              const SizedBox(height: 40),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

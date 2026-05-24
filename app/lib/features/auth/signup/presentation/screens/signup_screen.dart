@@ -1,124 +1,181 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../../../../core/services/auth_service.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_text_styles.dart';
 
 import '../../../../../shared/widgets/custom_text_field.dart';
-import '../../../../../shared/widgets/glow_container.dart';
 import '../../../../../shared/widgets/primary_button.dart';
 
+import '../../../../dashboard/presentation/screens/dashboard_screen.dart';
 import '../../../login/presentation/screens/login_screen.dart';
 
-class SignupScreen extends StatelessWidget {
+class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
+
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final TextEditingController emailController = TextEditingController();
+
+  final TextEditingController passwordController = TextEditingController();
+
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+
+  final AuthService _authService = AuthService();
+
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          // GLOW EFFECTS
-          Positioned(
-            top: 40,
-            right: -40,
-            child: GlowContainer(size: 220, color: AppColors.primary),
-          ),
 
-          Positioned(
-            bottom: 80,
-            left: -60,
-            child: GlowContainer(size: 220, color: AppColors.purple),
-          ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 26),
 
-          // CONTENT
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 26),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+
+            children: [
+              const SizedBox(height: 70),
+
+              // TITLE
+              Text("Create Account", style: AppTextStyles.heading1),
+
+              const SizedBox(height: 10),
+
+              Text(
+                "Secure your digital legacy",
+                style: AppTextStyles.bodyMedium,
+              ),
+
+              const SizedBox(height: 50),
+
+              // EMAIL
+              CustomTextField(
+                controller: emailController,
+
+                hintText: "Enter Email",
+
+                keyboardType: TextInputType.emailAddress,
+              ),
+
+              const SizedBox(height: 22),
+
+              // PASSWORD
+              CustomTextField(
+                controller: passwordController,
+
+                hintText: "Create Password",
+
+                obscureText: true,
+              ),
+
+              const SizedBox(height: 22),
+
+              // CONFIRM PASSWORD
+              CustomTextField(
+                controller: confirmPasswordController,
+
+                hintText: "Confirm Password",
+
+                obscureText: true,
+              ),
+
+              const SizedBox(height: 36),
+
+              // SIGNUP BUTTON
+              PrimaryButton(
+                text: isLoading ? "Loading..." : "Continue Securely",
+
+                onTap: () async {
+                  // PASSWORD MATCH CHECK
+
+                  if (passwordController.text.trim() !=
+                      confirmPasswordController.text.trim()) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Passwords do not match")),
+                    );
+
+                    return;
+                  }
+
+                  setState(() {
+                    isLoading = true;
+                  });
+
+                  try {
+                    await _authService.signUp(
+                      email: emailController.text.trim(),
+
+                      password: passwordController.text.trim(),
+                    );
+
+                    if (mounted) {
+                      Navigator.pushReplacement(
+                        context,
+
+                        MaterialPageRoute(
+                          builder: (_) => const DashboardScreen(),
+                        ),
+                      );
+                    }
+                  } on FirebaseAuthException catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(e.message ?? "Signup Failed")),
+                    );
+                  } finally {
+                    setState(() {
+                      isLoading = false;
+                    });
+                  }
+                },
+              ),
+
+              const SizedBox(height: 28),
+
+              // LOGIN NAVIGATION
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+
                 children: [
-                  const SizedBox(height: 70),
-
-                  // TITLE
-                  Text("Create Account", style: AppTextStyles.heading2),
-
-                  const SizedBox(height: 10),
-
                   Text(
-                    "Start securing your digital legacy",
+                    "Already have an account? ",
                     style: AppTextStyles.bodyMedium,
                   ),
 
-                  const SizedBox(height: 50),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
 
-                  // FULL NAME
-                  const CustomTextField(hintText: "Full name"),
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      );
+                    },
 
-                  const SizedBox(height: 20),
+                    child: Text(
+                      "Login",
 
-                  // EMAIL
-                  const CustomTextField(hintText: "Enter email"),
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.primary,
 
-                  const SizedBox(height: 20),
-
-                  // PASSWORD
-                  const CustomTextField(
-                    hintText: "Create password",
-                    obscureText: true,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // CONFIRM PASSWORD
-                  const CustomTextField(
-                    hintText: "Confirm password",
-                    obscureText: true,
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  // BUTTON
-                  PrimaryButton(text: "Continue Securely", onTap: () {}),
-
-                  const SizedBox(height: 40),
-
-                  // LOGIN TEXT
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Already have an account? ",
-                        style: AppTextStyles.bodyMedium,
+                        fontWeight: FontWeight.w600,
                       ),
-
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                          );
-                        },
-
-                        child: Text(
-                          "Login",
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-
-                  const SizedBox(height: 30),
                 ],
               ),
-            ),
+
+              const SizedBox(height: 40),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

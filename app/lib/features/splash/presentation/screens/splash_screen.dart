@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import '../../../auth/login/presentation/screens/login_screen.dart';
+import '../../../auth/auth_wrapper.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -20,11 +20,12 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 4), () {
+    Timer(const Duration(milliseconds: 3800), () {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
+
+          MaterialPageRoute(builder: (_) => const AuthWrapper()),
         );
       }
     });
@@ -41,6 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
           Positioned(
             top: 140,
             left: -60,
+
             child: _buildGlow(color: AppColors.primary, size: 260),
           ),
 
@@ -48,6 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
           Positioned(
             bottom: 120,
             right: -80,
+
             child: _buildGlow(color: AppColors.purple, size: 240),
           ),
 
@@ -56,14 +59,17 @@ class _SplashScreenState extends State<SplashScreen> {
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+
                 children: [
                   // LOGO
                   ClipOval(
                     child: SizedBox(
                       width: 160,
                       height: 160,
+
                       child: Image.asset(
-                        'assets/images/crypthera.png',
+                        'assets/images/crypthera_logo.png',
+
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -79,6 +85,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   // TAGLINE
                   Text(
                     "Secure Your Digital Legacy",
+
                     style: AppTextStyles.bodyMedium,
                   ),
 
@@ -87,6 +94,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   // DOTS
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+
                     children: [
                       _buildDot(AppColors.primary),
 
@@ -108,28 +116,32 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  // GLOW WIDGET
+  // GLOW
 
   Widget _buildGlow({required Color color, required double size}) {
     return ImageFiltered(
       imageFilter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+
       child: Container(
         width: size,
         height: size,
+
         decoration: BoxDecoration(
           shape: BoxShape.circle,
+
           color: color.withOpacity(0.18),
         ),
       ),
     );
   }
 
-  // DOT WIDGET
+  // DOT
 
   Widget _buildDot(Color color) {
     return Container(
       width: 10,
       height: 10,
+
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }

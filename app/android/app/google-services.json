@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "456500666849",
+    "project_id": "crypthera-app",
+    "storage_bucket": "crypthera-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:456500666849:android:f51a410be0865609f872a0",
+        "android_client_info": {
+          "package_name": "com.android.application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDtDsOF-3bNaqig5oXChvayl35wtsnuQoE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:456500666849:android:b50535cfe338c2ecf872a0",
+        "android_client_info": {
+          "package_name": "com.example.crypthera"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDtDsOF-3bNaqig5oXChvayl35wtsnuQoE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
