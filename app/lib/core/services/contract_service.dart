@@ -3,6 +3,7 @@ import 'package:web3dart/web3dart.dart';
 import 'wallet_service.dart';
 import '../constants/contract_abi.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:reown_appkit/reown_appkit.dart';
 
 class ContractService {
   static final ContractService _instance = ContractService._internal();
@@ -34,14 +35,46 @@ class ContractService {
       throw Exception("No wallet connected.");
     }
 
-    // SIMULATION MODE
+    // REAL REOWN/WALETCONNECT MODE
+    final modal = _walletService.appKitModal;
+    if (modal != null && modal.isConnected && modal.session != null) {
+      if (kDebugMode) print("ContractService: Running in REAL REOWN/WALETCONNECT MODE");
+      final session = modal.session!;
+      final contractFunction = _contract.function(functionName);
+      final dataHex = '0x' + contractFunction.encodeCall(args).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+      final valueHex = value != null ? '0x' + value.getInWei.toRadixString(16) : '0x0';
+
+      final tx = {
+        'from': address,
+        'to': _contract.address.hexEip55,
+        'data': dataHex,
+        'value': valueHex,
+      };
+
+      try {
+        final result = await modal.request(
+          topic: session.topic!,
+          chainId: 'eip155:11155111', // Sepolia Chain ID
+          request: SessionRequestParams(
+            method: 'eth_sendTransaction',
+            params: [tx],
+          ),
+        );
+        return result.toString();
+      } catch (e) {
+        if (kDebugMode) print("Reown transaction failed: $e");
+        rethrow;
+      }
+    }
+
+    // SIMULATION MODE (Fallback if no private key is stored, and no active Reown session exists)
     if (privateKey == null || privateKey.isEmpty) {
       if (kDebugMode) print("ContractService: Running in SIMULATION MODE");
       await Future.delayed(const Duration(seconds: 2));
       return "0xsimulated${List.generate(50, (_) => '0123456789abcdef'[DateTime.now().microsecond % 16]).join()}";
     }
 
-    // REAL BLOCKCHAIN MODE
+    // REAL LOCAL PRIVATE KEY BLOCKCHAIN MODE
     if (kDebugMode) print("ContractService: Running in REAL SEPOLIA MODE");
     final credentials = EthPrivateKey.fromHex(privateKey);
     final contractFunction = _contract.function(functionName);
@@ -78,6 +111,10 @@ class ContractService {
         final prefs = await SharedPreferences.getInstance();
         final currentSimBal = prefs.getDouble('sim_balance_$address') ?? 0.0;
         await prefs.setDouble('sim_balance_$address', currentSimBal + etherAmount);
+        
+        // Deduct from wallet balance
+        final currentWalletBal = prefs.getDouble('sim_wallet_balance_$address') ?? 2.5;
+        await prefs.setDouble('sim_wallet_balance_$address', currentWalletBal - etherAmount);
       }
     }
 

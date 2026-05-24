@@ -5,6 +5,11 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/services/ai_service.dart';
 import '../../../../shared/widgets/glow_container.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:web3dart/web3dart.dart';
+import '../../../../core/services/wallet_service.dart';
+import '../../../../core/services/contract_service.dart';
 
 class ChatMessage {
   final String text;
@@ -68,24 +73,72 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
     _scrollToBottom();
 
     try {
-      final reply = await _aiService.getResponse(cleanText);
-      setState(() {
-        _messages.add(ChatMessage(
-          text: reply,
-          isUser: false,
-          timestamp: DateTime.now(),
-        ));
-        _isLoading = false;
-      });
+      final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+      String walletAddress = "";
+      double walletBalance = 0.0;
+      double vaultBalance = 0.0;
+      List<Map<String, dynamic>> recentTxs = [];
+
+      if (uid.isNotEmpty) {
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        if (userDoc.exists) {
+          final data = userDoc.data() ?? {};
+          walletAddress = data['walletAddress'] as String? ?? '';
+          if (walletAddress.isNotEmpty) {
+            final rawBal = await WalletService().getBalance(walletAddress);
+            walletBalance = rawBal.getValueInUnit(EtherUnit.ether);
+            vaultBalance = await ContractService().getVaultBalance();
+          }
+        }
+        
+        final logsSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .collection('activityLogs')
+            .orderBy('timestamp', descending: true)
+            .limit(5)
+            .get();
+            
+        for (var doc in logsSnapshot.docs) {
+          final logData = doc.data();
+          recentTxs.add({
+            'type': logData['type'] ?? 'general',
+            'title': logData['title'] ?? '',
+            'description': logData['description'] ?? '',
+            'timestamp': logData['timestamp']?.toString() ?? '',
+          });
+        }
+      }
+
+      final reply = await _aiService.getResponse(
+        cleanText,
+        walletAddress: walletAddress,
+        walletBalance: walletBalance,
+        vaultBalance: vaultBalance,
+        recentTransactions: recentTxs,
+      );
+      
+      if (mounted) {
+        setState(() {
+          _messages.add(ChatMessage(
+            text: reply,
+            isUser: false,
+            timestamp: DateTime.now(),
+          ));
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _messages.add(ChatMessage(
-          text: "Error contacting AI Guardian: ${e.toString()}",
-          isUser: false,
-          timestamp: DateTime.now(),
-        ));
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _messages.add(ChatMessage(
+            text: "Error contacting AI Guardian: ${e.toString()}",
+            isUser: false,
+            timestamp: DateTime.now(),
+          ));
+          _isLoading = false;
+        });
+      }
     }
     _scrollToBottom();
   }

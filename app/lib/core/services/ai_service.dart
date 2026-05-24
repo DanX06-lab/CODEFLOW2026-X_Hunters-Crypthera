@@ -10,16 +10,30 @@ class AiService {
   // loopback address to host machine from Android Emulator
   final String _endpointUrl = "http://10.0.2.2:5000/chat";
 
-  Future<String> getResponse(String question) async {
+  Future<String> getResponse(
+    String question, {
+    String? walletAddress,
+    double? walletBalance,
+    double? vaultBalance,
+    List<Map<String, dynamic>>? recentTransactions,
+  }) async {
     final cleanQuestion = question.trim().toLowerCase();
     
     try {
       if (kDebugMode) print("AiService: Querying Flask backend: $_endpointUrl");
       
+      final body = {
+        "message": question,
+        "wallet_address": walletAddress ?? "",
+        "wallet_balance": walletBalance ?? 0.0,
+        "vault_balance": vaultBalance ?? 0.0,
+        "recent_transactions": recentTransactions ?? [],
+      };
+      
       final response = await http.post(
         Uri.parse(_endpointUrl),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"message": question}),
+        body: jsonEncode(body),
       ).timeout(const Duration(seconds: 4)); // Fail fast to use local backup
 
       if (response.statusCode == 200) {
@@ -27,15 +41,61 @@ class AiService {
         return data['reply'] as String? ?? "Received invalid response from AI service.";
       } else {
         if (kDebugMode) print("Flask backend returned error status: ${response.statusCode}");
-        return _getFallbackResponse(cleanQuestion);
+        return _getFallbackResponse(
+          cleanQuestion,
+          walletAddress: walletAddress,
+          walletBalance: walletBalance,
+          vaultBalance: vaultBalance,
+          recentTransactions: recentTransactions,
+        );
       }
     } catch (e) {
       if (kDebugMode) print("Flask connection failed ($e). Using local fallback engine.");
-      return _getFallbackResponse(cleanQuestion);
+      return _getFallbackResponse(
+        cleanQuestion,
+        walletAddress: walletAddress,
+        walletBalance: walletBalance,
+        vaultBalance: vaultBalance,
+        recentTransactions: recentTransactions,
+      );
     }
   }
 
-  String _getFallbackResponse(String query) {
+  String _getFallbackResponse(
+    String query, {
+    String? walletAddress,
+    double? walletBalance,
+    double? vaultBalance,
+    List<Map<String, dynamic>>? recentTransactions,
+  }) {
+    // Wallet-aware fallback queries
+    if (query.contains("balance") || query.contains("funds") || query.contains("how much") || query.contains("portfolio")) {
+      final wAddr = walletAddress != null && walletAddress.isNotEmpty ? walletAddress : "No wallet connected";
+      return """
+Crypthera Wallet Balance (Offline Analyzer):
+- Active Wallet Address: $wAddr
+- Available Wallet Balance: ${walletBalance?.toStringAsFixed(4) ?? '0.0000'} ETH
+- Locked Vault Contract Balance: ${vaultBalance?.toStringAsFixed(4) ?? '0.0000'} ETH
+
+AI Suggestion: Ensure you maintain at least 0.002 ETH in your available wallet for standard contract interaction gas fees on Sepolia.
+""";
+    }
+
+    if (query.contains("transaction") || query.contains("activity") || query.contains("history") || query.contains("log")) {
+      if (recentTransactions == null || recentTransactions.isEmpty) {
+        return "Offline Analyzer: No activities logged in this account yet.";
+      }
+      final txsList = recentTransactions.map((tx) {
+        return "- [${tx['type'].toString().toUpperCase()}] ${tx['title']}: ${tx['description']}";
+      }).join("\n");
+      return """
+Crypthera Recent Activities (Offline Analyzer):
+$txsList
+
+AI Insight: Your transaction pattern indicates a healthy check-in frequency. Continue maintaining periodic activity to keep the vault protected.
+""";
+    }
+
     if (query.contains("secure") || query.contains("security") || query.contains("safe") || query.contains("hack")) {
       return """
 Crypthera Vault Security:
@@ -79,7 +139,7 @@ Smart Swap is Crypthera's volatility protection protocol. During extreme market 
     if (query.contains("briefing") || query.contains("daily") || query.contains("price") || query.contains("market")) {
       return """
 Market Briefing Offline:
-I cannot fetch live CoinGecko prices while the Flask backend is offline. Please start the chatbot service in the 'crypthera_chatbot' folder (`npm start` or `python app.py`) to access live price statistics, fear & greed indices, and crash simulations.
+I cannot fetch live CoinGecko prices while the Flask backend is offline. Please start the chatbot service in the 'crypthera_chatbot' folder (`python app.py`) to access live price statistics, fear & greed indices, and crash simulations.
 """;
     }
 

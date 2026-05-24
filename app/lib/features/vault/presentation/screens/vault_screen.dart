@@ -55,11 +55,11 @@ class _VaultScreenState extends State<VaultScreen> {
             return AlertDialog(
               backgroundColor: AppColors.card,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(24),
                 side: const BorderSide(color: AppColors.stroke),
               ),
               title: Text(
-                showImportInput ? "Import Private Key" : "Connect Wallet",
+                showImportInput ? "Non-Custodial Import" : "Connect Web3 Wallet",
                 style: AppTextStyles.titleLarge,
               ),
               content: showImportInput
@@ -68,28 +68,95 @@ class _VaultScreenState extends State<VaultScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          "Paste your raw Ethereum private key (64 hex characters) from MetaMask or Trust Wallet.",
+                          "Enter your private key (64 hex characters) to generate contract interactions locally.",
                           style: AppTextStyles.bodyMedium,
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
                           controller: pkController,
-                          hintText: "Enter Private Key (e.g. 0xabc...)",
+                          hintText: "Private Key (0x...)",
                           obscureText: true,
                         ),
                       ],
                     )
-                  : Text(
-                      "Choose a method to connect a Web3 wallet for this hackathon demo.",
-                      style: AppTextStyles.bodyMedium,
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          "Select a supported wallet to connect to Crypthera.",
+                          style: AppTextStyles.bodyMedium,
+                        ),
+                        const SizedBox(height: 20),
+                        _buildWalletButton(
+                          name: "MetaMask",
+                          icon: LucideIcons.wallet,
+                          color: Colors.orange.withValues(alpha: 0.1),
+                          textColor: Colors.orange,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _connectViaReown();
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        _buildWalletButton(
+                          name: "Trust Wallet",
+                          icon: LucideIcons.shield,
+                          color: Colors.blue.withValues(alpha: 0.1),
+                          textColor: Colors.blue,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _connectViaReown();
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        _buildWalletButton(
+                          name: "Coinbase Wallet",
+                          icon: LucideIcons.circle,
+                          color: Colors.blueAccent.withValues(alpha: 0.1),
+                          textColor: Colors.blueAccent,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _connectViaReown();
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        _buildWalletButton(
+                          name: "WalletConnect",
+                          icon: LucideIcons.link,
+                          color: Colors.purple.withValues(alpha: 0.1),
+                          textColor: Colors.purple,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _connectViaReown();
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        const Divider(color: AppColors.stroke),
+                        const SizedBox(height: 10),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              showImportInput = true;
+                            });
+                          },
+                          child: const Text(
+                            "Advanced: Private Key Import",
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
               actionsAlignment: MainAxisAlignment.center,
               actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              actions: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: showImportInput
-                      ? [
+              actions: showImportInput
+                  ? [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
                           ElevatedButton(
                             onPressed: () async {
                               final pk = pkController.text.trim();
@@ -103,7 +170,11 @@ class _VaultScreenState extends State<VaultScreen> {
                                 return;
                               }
                               Navigator.pop(context);
-                              await _connect(isSimulated: false, privateKey: pk);
+                              if (pk == "DEVELOPER_SANDBOX_MODE") {
+                                await _connect(isDevSandbox: true);
+                              } else {
+                                await _connect(privateKey: pk);
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
@@ -139,68 +210,10 @@ class _VaultScreenState extends State<VaultScreen> {
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
-                        ]
-                      : [
-                          ElevatedButton(
-                            onPressed: () async {
-                              Navigator.pop(context);
-                              await _connect(isSimulated: true);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                            ),
-                            child: const Text(
-                              "Connect Simulated Wallet",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          OutlinedButton(
-                            onPressed: () async {
-                              Navigator.pop(context);
-                              await _connect(isSimulated: false);
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: AppColors.primary),
-                              foregroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                            ),
-                            child: const Text(
-                              "Generate New In-App Wallet",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          OutlinedButton(
-                            onPressed: () {
-                              setState(() {
-                                showImportInput = true;
-                              });
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: AppColors.stroke),
-                              foregroundColor: AppColors.textSecondary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                            ),
-                            child: const Text(
-                              "Import MetaMask Private Key",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
                         ],
-                ),
-              ],
+                      )
+                    ]
+                  : [],
             );
           },
         );
@@ -208,23 +221,105 @@ class _VaultScreenState extends State<VaultScreen> {
     );
   }
 
-  Future<void> _connect({required bool isSimulated, String? privateKey}) async {
+  Widget _buildWalletButton({
+    required String name,
+    required IconData icon,
+    required Color color,
+    required Color textColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: textColor.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: textColor, size: 24),
+            const SizedBox(width: 16),
+            Text(
+              name,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Spacer(),
+            Icon(LucideIcons.chevronRight, color: textColor, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _connectViaReown() async {
     try {
-      final address = await _walletService.connectWallet(
-        isSimulated: isSimulated,
-        importPrivateKey: privateKey,
+      final address = await _walletService.checkMetaMaskInstalledAndConnect(context);
+      if (address != null && address.isNotEmpty) {
+        await _firestoreService.updateWalletAddress(_uid, address);
+
+        // Log the activity
+        await _firestoreService.addActivityLog(_uid, {
+          'type': 'wallet_connected',
+          'title': 'Wallet Connected',
+          'description': 'Linked Web3 wallet via Reown AppKit (${_truncateAddress(address)})',
+        });
+
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Connection failed: ${e.toString()}"),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _connect({
+    String? privateKey,
+    bool isDevSandbox = false,
+    String? watchAddress,
+  }) async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
       );
+
+      final address = await _walletService.connectWallet(
+        importPrivateKey: privateKey,
+        isDevSandbox: isDevSandbox,
+        watchAddress: watchAddress,
+      );
+
+      if (mounted) {
+        Navigator.pop(context); // Remove progress indicator
+      }
+
       await _firestoreService.updateWalletAddress(_uid, address);
 
       // Log the activity
       await _firestoreService.addActivityLog(_uid, {
         'type': 'wallet_connected',
         'title': 'Wallet Connected',
-        'description': isSimulated
-            ? 'Connected simulated account (${_truncateAddress(address)})'
-            : privateKey != null
-                ? 'Imported private key wallet (${_truncateAddress(address)})'
-                : 'Generated secure keypair (${_truncateAddress(address)})',
+        'description': isDevSandbox
+            ? 'Connected developer sandbox account (${_truncateAddress(address)})'
+            : watchAddress != null
+                ? 'Synced watch wallet address (${_truncateAddress(address)})'
+                : privateKey != null
+                    ? 'Imported non-custodial wallet (${_truncateAddress(address)})'
+                    : 'Linked MetaMask Web3 extension (${_truncateAddress(address)})',
       });
 
       if (mounted) {
@@ -237,6 +332,7 @@ class _VaultScreenState extends State<VaultScreen> {
       }
     } catch (e) {
       if (mounted) {
+        Navigator.pop(context); // Remove progress indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Connection failed: ${e.toString()}"),

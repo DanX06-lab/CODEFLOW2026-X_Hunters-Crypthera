@@ -12,12 +12,15 @@ class CustomTextField extends StatelessWidget {
 
   final TextInputType? keyboardType;
 
+  final ValueChanged<String>? onChanged;
+
   const CustomTextField({
     super.key,
     required this.hintText,
     this.obscureText = false,
     this.controller,
     this.keyboardType,
+    this.onChanged,
   });
 
   @override
@@ -26,6 +29,7 @@ class CustomTextField extends StatelessWidget {
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
+      onChanged: onChanged,
 
       style: AppTextStyles.bodyMedium.copyWith(
         color: AppColors.textPrimary,

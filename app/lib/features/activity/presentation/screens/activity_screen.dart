@@ -143,6 +143,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                             final type = log['type'] as String? ?? 'general';
                             final title = log['title'] as String? ?? 'Activity';
                             final description = log['description'] as String? ?? '';
+                            final timestamp = log['timestamp'];
                             
                             IconData icon = LucideIcons.info;
                             Color iconColor = AppColors.primary;
@@ -171,7 +172,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                               iconColor: iconColor,
                               title: title,
                               subtitle: description,
-                              time: "Just now", // In a real app we'd format a real timestamp
+                              time: _formatTimestamp(timestamp),
                             );
                           },
                         ),
@@ -256,5 +257,28 @@ class _ActivityScreenState extends State<ActivityScreen> {
         ),
       ),
     );
+  }
+
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp == null) return 'Just now';
+    if (timestamp is Timestamp) {
+      final date = timestamp.toDate();
+      final now = DateTime.now();
+      final difference = now.difference(date);
+
+      if (difference.inSeconds < 60) {
+        return 'Just now';
+      } else if (difference.inMinutes < 60) {
+        return '${difference.inMinutes}m ago';
+      } else if (difference.inHours < 24) {
+        return '${difference.inHours}h ago';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays}d ago';
+      } else {
+        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return '${months[date.month - 1]} ${date.day}, ${date.year}';
+      }
+    }
+    return 'Just now';
   }
 }
