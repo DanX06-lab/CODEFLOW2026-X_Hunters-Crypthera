@@ -36,7 +36,7 @@ class ActivityTile extends StatelessWidget {
             height: 42,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: iconColor.withOpacity(0.15),
+              color: iconColor.withValues(alpha: 0.15),
             ),
             child: Icon(icon, color: iconColor, size: 20),
           ),

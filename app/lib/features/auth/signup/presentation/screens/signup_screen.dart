@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../../core/services/auth_service.dart';
+import '../../../../../core/services/firestore_service.dart';
+
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_text_styles.dart';
 
@@ -19,6 +21,10 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  // CONTROLLERS
+
+  final TextEditingController fullNameController = TextEditingController();
+
   final TextEditingController emailController = TextEditingController();
 
   final TextEditingController passwordController = TextEditingController();
@@ -26,7 +32,11 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
+  // SERVICES
+
   final AuthService _authService = AuthService();
+
+  final FirestoreService _firestoreService = FirestoreService();
 
   bool isLoading = false;
 
@@ -57,7 +67,16 @@ class _SignupScreenState extends State<SignupScreen> {
 
               const SizedBox(height: 50),
 
-              // EMAIL
+              // FULL NAME FIELD
+              CustomTextField(
+                controller: fullNameController,
+
+                hintText: "Enter Full Name",
+              ),
+
+              const SizedBox(height: 22),
+
+              // EMAIL FIELD
               CustomTextField(
                 controller: emailController,
 
@@ -68,7 +87,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               const SizedBox(height: 22),
 
-              // PASSWORD
+              // PASSWORD FIELD
               CustomTextField(
                 controller: passwordController,
 
@@ -79,7 +98,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               const SizedBox(height: 22),
 
-              // CONFIRM PASSWORD
+              // CONFIRM PASSWORD FIELD
               CustomTextField(
                 controller: confirmPasswordController,
 
@@ -111,29 +130,46 @@ class _SignupScreenState extends State<SignupScreen> {
                   });
 
                   try {
-                    await _authService.signUp(
+                    // FIREBASE AUTH SIGNUP
+
+                    final userCredential = await _authService.signUp(
                       email: emailController.text.trim(),
 
                       password: passwordController.text.trim(),
                     );
 
-                    if (mounted) {
-                      Navigator.pushReplacement(
-                        context,
+                    // CREATE FIRESTORE USER DOCUMENT
 
-                        MaterialPageRoute(
-                          builder: (_) => const DashboardScreen(),
-                        ),
-                      );
-                    }
+                    await _firestoreService.createUser(
+                      uid: userCredential.user!.uid,
+
+                      email: emailController.text.trim(),
+
+                      fullName: fullNameController.text.trim(),
+                    );
+
+                    if (!context.mounted) return;
+
+                    // NAVIGATE TO DASHBOARD
+
+                    Navigator.pushReplacement(
+                      context,
+
+                      MaterialPageRoute(
+                        builder: (_) => const DashboardScreen(),
+                      ),
+                    );
                   } on FirebaseAuthException catch (e) {
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(e.message ?? "Signup Failed")),
                     );
                   } finally {
-                    setState(() {
-                      isLoading = false;
-                    });
+                    if (mounted) {
+                      setState(() {
+                        isLoading = false;
+                      });
+                    }
                   }
                 },
               ),

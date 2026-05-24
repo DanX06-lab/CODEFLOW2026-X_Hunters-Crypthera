@@ -87,23 +87,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       password: passwordController.text.trim(),
                     );
 
-                    if (mounted) {
-                      Navigator.pushReplacement(
-                        context,
+                    if (!context.mounted) return;
+                    Navigator.pushReplacement(
+                      context,
 
-                        MaterialPageRoute(
-                          builder: (_) => const DashboardScreen(),
-                        ),
-                      );
-                    }
+                      MaterialPageRoute(
+                        builder: (_) => const DashboardScreen(),
+                      ),
+                    );
                   } on FirebaseAuthException catch (e) {
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(e.message ?? "Login Failed")),
                     );
                   } finally {
-                    setState(() {
-                      isLoading = false;
-                    });
+                    if (mounted) {
+                      setState(() {
+                        isLoading = false;
+                      });
+                    }
                   }
                 },
               ),

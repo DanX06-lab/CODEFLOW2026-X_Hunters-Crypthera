@@ -1,0 +1,18 @@
+{
+  "name": "vaultx-chatbot",
+  "version": "1.0.0",
+  "description": "VaultX AI Chatbot Backend",
+  "main": "app.py",
+  "scripts": {
+    "start": "python app.py",
+    "dev": "python app.py --reload"
+  },
+  "dependencies": {
+    "flask": "^2.3.0",
+    "flask-cors": "^4.0.0",
+    "requests": "^2.31.0"
+  },
+  "keywords": ["vaultx", "ai", "chatbot", "crypto"],
+  "author": "VaultX Team",
+  "license": "MIT"
+}

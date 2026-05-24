@@ -100,11 +100,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
                       const SizedBox(width: 8),
 
-                      _buildDot(AppColors.textSecondary.withOpacity(0.4)),
+                      _buildDot(AppColors.textSecondary.withValues(alpha: 0.4)),
 
                       const SizedBox(width: 8),
 
-                      _buildDot(AppColors.textSecondary.withOpacity(0.4)),
+                      _buildDot(AppColors.textSecondary.withValues(alpha: 0.4)),
                     ],
                   ),
                 ],
@@ -129,7 +129,7 @@ class _SplashScreenState extends State<SplashScreen> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
 
-          color: color.withOpacity(0.18),
+          color: color.withValues(alpha: 0.18),
         ),
       ),
     );
